@@ -71,7 +71,7 @@ gulp.task('sass', function() {
 // 		.pipe(gulp.dest('public/js/'));
 // });
 
-gulp.task('restart', function() {
+gulp.task('restart', ['jsServer'], function() {
 	return restartService();
 })
 
