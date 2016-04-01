@@ -5,6 +5,7 @@ var gulp = require("gulp"),
 	sass = require("gulp-sass"),
 	babel = require("gulp-babel"),
 	autoprefixer = require("gulp-autoprefixer"),
+	plumber = require('gulp-plumber'),
 	browserify = require("browserify"),
 	buffer = require("vinyl-buffer"),
 	uglify = require("gulp-uglify"),
@@ -18,7 +19,7 @@ var sameDir = function(file) {
 var shouldServiceRestart = true;
 var srvr = false;
 var startService = function() {
-	srvr = spawn('node',['dist/app.js']);
+	srvr = spawn('node',['dst/server/app.js']);
 	
 	srvr.stdout.on('data', function(data) {
 		process.stdout.write(data);
@@ -27,13 +28,14 @@ var startService = function() {
 		process.stderr.write(data);
 	});
 	srvr.on('close', function(code){
-		console.log(' -- server stopped: ' + code);
+		gutil.log(' -- server stopped: ' + code);
 		srvr.stdin.end();
 		if (shouldServiceRestart) {
-			console.log(' -- server restart');
+			gutil.log(' -- server restart');
 			setTimeout(startService, 1000);
 		}
 	});
+	gutil.log(" -- server started");
 }
 
 var restartService = function() {
@@ -47,14 +49,23 @@ process.on("SIGINT", function(){
 	process.exit();
 });
 
-gulp.task('jsServer', function() {
-	return gulp.src('src-server/**/*.js')
+gulp.task('server', function() {
+	return gulp.src('src/server/**/*.js')
+		.pipe(plumber())
 		.pipe(babel().on('error', gutil.log))
-		.pipe(gulp.dest('dist/'))
+		.pipe(gulp.dest('dst/server/'))
+})
+
+gulp.task('client', function() {
+	return gulp.src('src/client/**/*.js')
+		.pipe(plumber())
+		.pipe(babel().on('error', gutil.log))
+		.pipe(gulp.dest('dst/client/'))
 })
 
 gulp.task('sass', function() {
-	return gulp.src('styles/*.sass')
+	return gulp.src('src/sass/style.sass')
+		.pipe(plumber())
 		.pipe(sass().on('error', gutil.log))
 		.pipe(autoprefixer({
 			browsers: ['> 1%']
@@ -62,32 +73,37 @@ gulp.task('sass', function() {
 		.pipe(gulp.dest('public/css/'));
 });
 
-// gulp.task('browserify', ['coffeeClient'], function() {
-// 	return browserify('src-client/index.js')
-// 		.bundle()
-// 		.pipe(source('bundle.js'))
-// 		.pipe(buffer())
-// 		// .pipe(uglify())
-// 		.pipe(gulp.dest('public/js/'));
-// });
+gulp.task('browserify', ['client'], function() {
+	return browserify('dst/client/app.js')
+		.bundle()
+		.pipe(plumber())
+		.pipe(source('app.js'))
+		.pipe(buffer())
+		// .pipe(uglify())
+		.pipe(gulp.dest('public/js/'));
+});
 
-gulp.task('restart', ['jsServer'], function() {
+gulp.task('restart', ['server'], function() {
 	return restartService();
 })
 
-gulp.task('watchJsServer', function() {
-	return gulp.watch('src-server/**/*.js', ['jsServer', 'restart']);
+gulp.task('watchServer', function() {
+	return gulp.watch('src/server/**/*.js', ['server', 'restart']);
 });
 
 gulp.task('watchSass', function() {
-	return gulp.watch('styles/*.sass', ['sass']);
+	return gulp.watch('src/sass/style.sass', ['sass']);
 });
 
-gulp.task('start', function() {
-	return startService();
+gulp.task('watchClient', function() {
+	return gulp.watch('src/client/*.js', ['browserify']);
 });
 
-gulp.task('watchAll', ['watchJsServer', 'watchSass']);
-gulp.task('compileAll', ['jsServer', 'sass']);
+gulp.task('start', ['compileAll'], function(cb) {
+	startService(cb);
+});
 
-gulp.task('default', ['compileAll', 'watchAll', 'start']);
+gulp.task('watchAll', ['watchServer', 'watchSass', 'watchClient']);
+gulp.task('compileAll', ['server', 'sass', 'browserify']);
+
+gulp.task('default', ['watchAll', 'start']);
