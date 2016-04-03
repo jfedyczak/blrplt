@@ -1,44 +1,41 @@
-import Rx from 'rx'
-import Cycle from '@cycle/core'
-import { makeDOMDriver, div, h1, ul, li, a, button } from '@cycle/dom'
-import { makeHistoryDriver } from '@cycle/history'
-import { useQueries, createHistory } from 'history'
+import most from 'most'
+import { run } from '@motorcycle/core'
+import { makeDOMDriver, h } from '@motorcycle/dom'
+import { makeHistoryDriver } from '@motorcycle/history'
+import { createHistory } from 'history'
 
 const main = (sources) => {
+	// intent
 	const history$ = sources.history
-	const aClick$ = sources.DOM.select('a')
-		.events('click')
-	const aClickHref$ = aClick$
-		.map(ev => ev.target.pathname)
+	const aClick$ = sources.DOM.select('a').events('click')
+	const aClickHref$ = aClick$.map(ev => ev.target.pathname)
 	const preventDefault$ = aClick$
 	const buttonClick$ = sources.DOM.select('button').events('click')
-		.startWith(0)
-		.scan((x, y) => x + 1)
+		.scan((x, y) => x + 1, 0)
 
-	// stan:
-	const state$ = history$.combineLatest(
-		buttonClick$,
+	// model
+	const state$ = most.combine(
 		(h, b) => {
-			return {
-				gdziejestem: h.pathname,
-				licznik: b
-			}
-		})
+			return { location: h.pathname, counter: b }
+		},
+		history$,
+		buttonClick$
+	)
 
-	// widok:
+	// view
 	const vtree$ = state$.
-		map(stan => {
-			return div([
-				h1(`Jestem tu: ${stan.gdziejestem}`),
-				ul([
-					li([
-						a({href:'/'}, 'główna')
+		map(state => {
+			return h('div', [
+				h('h1', `Location: ${state.location}`),
+				h('ul', [
+					h('li', [
+						h('a', {attrs: {href:'/'}}, 'main')
 					]),
-					li([
-						a({href:'/login'}, 'logowanie')
+					h('li', [
+						h('a', {attrs: {href:'/login'}}, 'sing in')
 					]),
 				]),
-				button('.button', `${stan.licznik}`)
+				h('button', '.button', `${state.counter}`)
 			])
 		})
 	return {
@@ -49,9 +46,9 @@ const main = (sources) => {
 }
 
 const makePreventDefaultDriver = () => (preventDefault$) =>
-	preventDefault$.subscribe(ev => ev.preventDefault())
+	preventDefault$.observe(ev => ev.preventDefault())
 
-Cycle.run(main, {
+run(main, {
 	DOM: makeDOMDriver("#app"),
 	history: makeHistoryDriver(createHistory()),
 	preventDefault: makePreventDefaultDriver()

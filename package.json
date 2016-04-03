@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "@cycle/core": "^6.0.3",
-    "@cycle/dom": "^9.2.2",
-    "@cycle/history": "^2.0.1",
+    "@motorcycle/core": "^1.2.1",
+    "@motorcycle/dom": "^1.4.0",
+    "@motorcycle/router": "^1.2.2",
     "history": "^2.0.1",
-    "rx": "^4.1.0",
+    "most": "^0.18.8",
     "send": "^0.13.2"
   },
   "devDependencies": {

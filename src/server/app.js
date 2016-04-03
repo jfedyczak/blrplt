@@ -1,15 +1,14 @@
-import Rx from 'rx'
+import most from 'most'
 import http from 'http'
 import send from 'send'
 
-let publicFiles = []
-
 const srv = http.createServer()
-let request$ = Rx.Observable
-	.fromEvent(srv, 'request', (req, res) => { 
-		return {req, res, url: req.url, method: req.method} 
+let request$ = most.create(add => {
+	srv.on('request', (req, res) => { 
+		add({req, res, url: req.url, method: req.method})
 	})
-	.subscribe(r => {
+})
+request$.observe(r => {
 		if (false) {
 		} else {
 			send(r.req, r.url, {
