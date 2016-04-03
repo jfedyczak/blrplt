@@ -8,10 +8,9 @@ const main = (sources) => {
 	const history$ = sources.history
 	const aClick$ = sources.DOM.select('a')
 		.events('click')
-		.do(ev => {
-			ev.preventDefault()
-		})
+	const aClickHref$ = aClick$
 		.map(ev => ev.target.pathname)
+	const preventDefault$ = aClick$
 	const buttonClick$ = sources.DOM.select('button').events('click')
 		.startWith(0)
 		.scan((x, y) => x + 1)
@@ -44,13 +43,16 @@ const main = (sources) => {
 		})
 	return {
 		DOM: vtree$,
-		history: aClick$
+		history: aClickHref$,
+		preventDefault: aClick$
 	}
 }
 
-const drivers = {
-	DOM: makeDOMDriver("#app"),
-	history: makeHistoryDriver(createHistory())
-}
+const makePreventDefaultDriver = () => (preventDefault$) =>
+	preventDefault$.subscribe(ev => ev.preventDefault())
 
-Cycle.run(main, drivers)
+Cycle.run(main, {
+	DOM: makeDOMDriver("#app"),
+	history: makeHistoryDriver(createHistory()),
+	preventDefault: makePreventDefaultDriver()
+})
