@@ -1,55 +1,53 @@
-import most from 'most'
-import { run } from '@motorcycle/core'
-import { makeDOMDriver, h } from '@motorcycle/dom'
-import { makeHistoryDriver } from '@motorcycle/history'
-import { createHistory } from 'history'
+import xs from 'xstream'
+import { run } from '@cycle/xstream-run'
+import { makeDOMDriver } from '@cycle/dom'
+import Immutable from 'immutable'
+import views from './views'
+import actionMaps from './actions'
+import snabbdom from 'snabbdom'
 
-const main = (sources) => {
-	// intent
-	const history$ = sources.history
-	const aClick$ = sources.DOM.select('a').events('click')
-	const aClickHref$ = aClick$.map(ev => ev.target.pathname)
-	const preventDefault$ = aClick$
-	const buttonClick$ = sources.DOM.select('button').events('click')
-		.scan((x, y) => x + 1, 0)
+const main = ({state, actions}) => {
+	const stateChanges$ = xs.merge.apply(this, Object.keys(actionMaps).map(a => actions[a].map(actionMaps[a])))
+	
+	const view$ = state.map(state => views[state.get('view')](state, actions))
 
-	// model
-	const state$ = most.combine(
-		(h, b) => {
-			return { location: h.pathname, counter: b }
-		},
-		history$,
-		buttonClick$
-	)
-
-	// view
-	const vtree$ = state$.
-		map(state => {
-			return h('div', [
-				h('h1', `Location: ${state.location}`),
-				h('ul', [
-					h('li', [
-						h('a', {attrs: {href:'/'}}, 'main')
-					]),
-					h('li', [
-						h('a', {attrs: {href:'/login'}}, 'sing in')
-					]),
-				]),
-				h('button', '.button', `${state.counter}`)
-			])
-		})
 	return {
-		DOM: vtree$,
-		history: aClickHref$,
-		preventDefault: aClick$
+		state: stateChanges$,
+		DOM: view$
 	}
 }
 
-const makePreventDefaultDriver = () => (preventDefault$) =>
-	preventDefault$.observe(ev => ev.preventDefault())
+const makeStateDriver = (initialState = {}) => (input$) => {
+	const immutableState = Immutable.fromJS(initialState)
+	return input$
+		.fold((state, changeState) => changeState(state), immutableState)
+		.startWith(immutableState)
+}
+
+const makeActionsDriver = actions => {
+	return () => {
+		let a = actions.reduce((observables, key) => {
+			observables[key] = xs.create()
+			return observables
+		}, {})
+		return a
+	}
+}
 
 run(main, {
-	DOM: makeDOMDriver("#app"),
-	history: makeHistoryDriver(createHistory()),
-	preventDefault: makePreventDefaultDriver()
+	DOM: makeDOMDriver("#app", {
+		modules: [
+			require('snabbdom/modules/props'),
+			require('snabbdom/modules/class'),
+			require('snabbdom/modules/attributes'),
+			require('snabbdom/modules/eventlisteners'),
+			require('snabbdom/modules/style')
+		]
+	}),
+	state: makeStateDriver({
+		view: 'main',
+		loading: false,
+		napis: 'test'
+	}),
+	actions: makeActionsDriver(Object.keys(actionMaps))
 })
