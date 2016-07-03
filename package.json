@@ -2,6 +2,7 @@
   "dependencies": {
     "@cycle/xstream-run": "*",
     "@cycle/dom": "*",
+    "@cycle/http": "*",
     "xstream": "*",
     "immutable": "*",
     "send": "*",

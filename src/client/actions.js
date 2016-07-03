@@ -1,4 +1,17 @@
 export default {
-	BUTTON_CLICK: () => state => state.set('view', 'second'),
-	BUTTON_CLICK2: () => state => state.set('view', 'main')
+	RESPONSE_ACTION: body => {
+		return {
+			state: state => state.set('result', body.test)
+		}
+	},
+	FETCH: () => {
+		return {
+			state: state => state,
+			HTTP: {
+				url: "/api/test",
+				action: "RESPONSE_ACTION"
+			}
+		}
+	},
+	CLEAR: () => state => state.set('result', '---')
 }

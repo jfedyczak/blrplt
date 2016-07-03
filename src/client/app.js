@@ -1,19 +1,42 @@
 import xs from 'xstream'
 import { run } from '@cycle/xstream-run'
-import { makeDOMDriver } from '@cycle/dom'
+import { makeDOMDriver, div, button } from '@cycle/dom'
+import { makeHTTPDriver } from '@cycle/http'
 import Immutable from 'immutable'
 import views from './views'
 import actionMaps from './actions'
 import snabbdom from 'snabbdom'
 
-const main = ({state, actions}) => {
-	const stateChanges$ = xs.merge.apply(this, Object.keys(actionMaps).map(a => actions[a].map(actionMaps[a])))
+const main = ({DOM, state, actions, HTTP}) => {
 	
+	HTTP.response$$.flatten().addListener({
+		next: r => {
+			actions[r.request.action].shamefullySendNext(r.body)
+		},
+		error: (e) => {
+			console.log(e)
+		},
+		complete: () => {}
+	})
+	
+	const action$ = xs
+		.merge.apply(this, Object.keys(actionMaps).map(a => actions[a].map(actionMaps[a])))
+		.map(a => typeof a === 'object' ? a : { state: a })
+	
+	const stateChanges$ = action$
+		.filter(a => 'state' in a)
+		.map(a => a.state)
+	
+	const requests$ = action$
+		.filter(a => 'HTTP' in a)
+		.map(a => a.HTTP)
+
 	const view$ = state.map(state => views[state.get('view')](state, actions))
 
 	return {
 		state: stateChanges$,
-		DOM: view$
+		DOM: view$,
+		HTTP: requests$
 	}
 }
 
@@ -44,10 +67,10 @@ run(main, {
 			require('snabbdom/modules/style')
 		]
 	}),
+	HTTP: makeHTTPDriver(),
 	state: makeStateDriver({
 		view: 'main',
-		loading: false,
-		napis: 'test'
+		result: '---'
 	}),
 	actions: makeActionsDriver(Object.keys(actionMaps))
 })

@@ -4,15 +4,14 @@ export default {
 	main: (state, actions) => div('.view', [
 		button({
 			on: {
-				click: ev => actions.BUTTON_CLICK.shamefullySendNext()
+				click: ev => actions.FETCH.shamefullySendNext()
 			}
-		}, 'push me')
-	]),
-	second: (state, actions) => div('.view', [
+		}, 'fetch'),
 		button({
 			on: {
-				click: ev => actions.BUTTON_CLICK2.shamefullySendNext()
+				click: ev => actions.CLEAR.shamefullySendNext()
 			}
-		}, 'push me 2')
+		}, 'clear'),
+		div(state.get('result'))
 	])
 }
