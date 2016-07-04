@@ -1,6 +1,6 @@
 import xs from 'xstream'
 import { run } from '@cycle/xstream-run'
-import { makeDOMDriver, div, button } from '@cycle/dom'
+import { makeDOMDriver } from '@cycle/dom'
 import { makeHTTPDriver } from '@cycle/http'
 import Immutable from 'immutable'
 import views from './views'

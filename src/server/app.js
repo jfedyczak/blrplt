@@ -1,8 +1,5 @@
-import most from 'most'
 import http from 'http'
 import send from 'send'
-
-const srv = http.createServer()
 
 const sendFile = (req, res, url) => {
 	send(req, url, {
@@ -20,18 +17,16 @@ const sendStatus = (req, res, statusCode) => {
 	res.end()
 }
 
-most.fromEvent('request', srv)
-.observe(([req, res]) => {
-	if (req.url == "/api/test") {
-		console.log("sending test");
-		sendJson(req, res, {
-			test: 'XHR answer'
-		})
-	} else {
-		send(req, req.url, {
-			root: `${__dirname}/../../public`,
-		}).pipe(res)
-	}
-})
-
-srv.listen(3001)
+const srv = http.createServer()
+	.on('request', (req, res) => {
+		if (req.url == "/api/test") {
+			console.log("sending test");
+			sendJson(req, res, {
+				test: 'XHR answer'
+			})
+		} else {
+			send(req, req.url, {
+				root: `${__dirname}/../../public`,
+			}).pipe(res)
+		}
+	}).listen(3001)
