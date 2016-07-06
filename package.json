@@ -19,7 +19,6 @@
     "gulp-plumber": "*",
     "gulp-sass": "*",
     "gulp-uglify": "*",
-    "gulp-jade": "*",
     "gulp-util": "*",
     "vinyl-buffer": "*",
     "vinyl-source-stream": "*"
