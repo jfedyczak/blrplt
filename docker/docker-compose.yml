@@ -5,6 +5,8 @@ services:
         build: app/
         expose:
             - "3001"
+        ports:
+            - "3001:3001"
         volumes:
             - ./../:/home/app/src
             - /home/app/src/node_modules
