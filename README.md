@@ -43,12 +43,12 @@ My ES6 / node.js boilerplate.
 
 1. Install all npm modules:
 
-       docker exec -it blrplt-app bash
-       npm install
+        docker exec -it blrplt-app bash
+        npm install
 1. Run gulp
 
-       docker exec -it blrplt-app bash
-       gulp
+        docker exec -it blrplt-app bash
+        gulp
 1. Navigate to [http://localhost:3001](http://localhost:3001)
 
 #### Applying changes to database
