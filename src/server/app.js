@@ -1,5 +1,6 @@
 import http from 'http'
 import send from 'send'
+import { dbq, runDelta } from './lib/sql'
 
 const sendFile = (req, res, url) => {
 	send(req, url, {
@@ -29,4 +30,10 @@ const srv = http.createServer()
 				root: `${__dirname}/../../public`,
 			}).pipe(res)
 		}
-	}).listen(3001)
+	})
+
+runDelta()
+.then(() => {
+	srv.listen(3001)
+	console.log(' -- server ready');
+})

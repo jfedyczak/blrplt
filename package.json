@@ -6,7 +6,9 @@
     "xstream": "*",
     "immutable": "*",
     "send": "*",
-    "snabbdom": "*"
+    "snabbdom": "*",
+    "pg": "*",
+    "bluebird": "*"
   },
   "devDependencies": {
     "babel-preset-es2015": "*",

@@ -1,0 +1,19 @@
+version: '2'
+services:
+    app:
+        container_name: blrplt-app
+        build: app/
+        expose:
+            - "3001"
+        volumes:
+            - ./../:/home/app/src
+            - /home/app/src/node_modules
+        restart: always
+        links:
+            - pg
+    pg:
+        container_name: blrplt-pg
+        build: pg/
+        restart: always
+        expose:
+            - "5432"
