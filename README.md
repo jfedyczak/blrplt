@@ -33,17 +33,20 @@ My ES6 / node.js boilerplate.
 #### Usage
 
 1. Execute `docker-compose` from within `docker` folder:
-       cd docker
-       docker-compose up
+
+        cd docker
+        docker-compose up
 
     This should build images and start containers:
      - `blrplt-app` with application code and dev tools
      - `blrplt-pg` with PostgreSQL database
 
 1. Install all npm modules:
+
        docker exec -it blrplt-app bash
        npm install
 1. Run gulp
+
        docker exec -it blrplt-app bash
        gulp
 1. Navigate to [http://localhost:3001](http://localhost:3001)
